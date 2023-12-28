@@ -1,0 +1,12 @@
+{
+    "name": "quocvo87/composeralias",
+    "description": "Composer Alias Namespace",
+    "type": "package",
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "TrueMe\\": "src/"
+        }
+    },
+    "license": "MIT"
+}
