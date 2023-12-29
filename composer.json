@@ -8,5 +8,10 @@
             "TrueMe\\": "src/"
         }
     },
+    "extra": {
+        "aliases": {
+            "Word": "TrueMe\\Hello\\Word"
+        }
+    },
     "license": "MIT"
 }
