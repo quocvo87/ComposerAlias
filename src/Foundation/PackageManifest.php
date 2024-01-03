@@ -1,92 +1,41 @@
-<?php
-
-namespace TrueMe\Foundation;
-
-use Exception;
-use Illuminate\Filesystem\Filesystem;
+<?php namespace TrueMe\Foundation;
 
 class PackageManifest
 {
-    public $files;
     public $basePath;
     public $vendorPath;
-    public $manifestPath;
     public $manifest;
+    public $packageName = 'trueme/composer-alias';
 
-    public function __construct(Filesystem $files, $basePath, $manifestPath)
+    public function __construct($basePath)
     {
-        $this->files = $files;
         $this->basePath = $basePath;
-        $this->manifestPath = $manifestPath;
         $this->vendorPath = $basePath.'/vendor';
     }
 
     public function aliases()
     {
-        return collect($this->getManifest())->flatMap(function ($configuration) {
-            return (array) ($configuration['aliases'] ?? []);
-        })->filter()->all();
+        return $this->manifest[$this->foundKey()]['extra']['trueme']['aliases'];
+    }
+
+    protected function foundKey()
+    {
+        return array_search($this->packageName, array_column($this->getManifest(), 'name'));
     }
 
     protected function getManifest()
     {
-        if (! is_null($this->manifest)) {
-            return $this->manifest;
-        }
+        if (! is_null($this->manifest)) return $this->manifest;
 
-        if (! file_exists($this->manifestPath)) {
-            $this->build();
-        }
+        $this->build();
 
-        return $this->manifest = file_exists($this->manifestPath) ?
-            $this->files->getRequire($this->manifestPath) : [];
+        return $this->manifest;
     }
 
     public function build()
     {
-        $packages = [];
+        $path = $this->vendorPath.'/composer/installed.json';
 
-        if ($this->files->exists($path = $this->vendorPath.'/composer/installed.json')) {
-            $installed = json_decode($this->files->get($path), true);
-
-            $packages = $installed['packages'] ?? $installed;
-        }
-
-        $ignoreAll = in_array('*', $ignore = $this->packagesToIgnore());
-
-        $this->write(collect($packages)->mapWithKeys(function ($package) {
-            return [$this->format($package['name']) => $package['extra']['trueme'] ?? []];
-        })->each(function ($configuration) use (&$ignore) {
-            $ignore = array_merge($ignore, $configuration['dont-discover'] ?? []);
-        })->reject(function ($configuration, $package) use ($ignore, $ignoreAll) {
-            return $ignoreAll || in_array($package, $ignore);
-        })->filter()->all());
-    }
-
-    protected function format($package)
-    {
-        return str_replace($this->vendorPath.'/', '', $package);
-    }
-
-    protected function packagesToIgnore()
-    {
-        if (! file_exists($this->basePath.'/composer.json')) {
-            return [];
-        }
-
-        return json_decode(file_get_contents(
-            $this->basePath.'/composer.json'
-        ), true)['extra']['laravel']['dont-discover'] ?? [];
-    }
-
-    protected function write(array $manifest)
-    {
-        if (! is_writable(dirname($this->manifestPath))) {
-            throw new Exception('The '.dirname($this->manifestPath).' directory must be present and writable.');
-        }
-
-        $this->files->put(
-            $this->manifestPath, '<?php return '.var_export($manifest, true).';'
-        );
+        return $this->manifest = json_decode(file_get_contents($path), true);
     }
 }
