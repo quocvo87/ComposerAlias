@@ -1,5 +1,5 @@
 {
-    "name": "quocvo87/composeralias",
+    "name": "trueme/composer-alias",
     "description": "Composer Alias Namespace",
     "type": "package",
     "minimum-stability": "dev",
@@ -9,9 +9,10 @@
         }
     },
     "extra": {
-        "aliases": {
-            "Word": "TrueMe\\Hello\\Word"
+        "trueme": {
+            "aliases": {
+                "Word": "TrueMe\\Hello\\Word"
+            }
         }
     },
-    "license": "MIT"
 }

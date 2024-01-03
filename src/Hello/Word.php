@@ -1,5 +1,5 @@
 <?php
-namespace TrueMe\Hello
+namespace TrueMe\Hello;
 
 class Word
 {
